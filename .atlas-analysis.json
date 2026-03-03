@@ -1,0 +1,47 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "HTTPToRequests",
+  "projectDescription": "Convert HTTP messages from Burp Suite exports to Python requests code",
+  "theme": "aspen",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#60A5FA",
+  "darkColor": "#1E40AF",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": ["introduction", "installation", "quickstart"]
+      },
+      {
+        "group": "Usage",
+        "pages": ["usage/cli", "usage/module", "usage/examples"]
+      },
+      {
+        "group": "Reference",
+        "pages": ["api/httpconverter", "api/functiontemplate", "api/cli"]
+      },
+      {
+        "group": "Advanced",
+        "pages": ["advanced/oop-mode", "advanced/configuration", "advanced/burpsuite"]
+      },
+      {
+        "group": "Contributing",
+        "pages": ["contributing", "testing"]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Convert Burp Suite XML exports to Python requests code",
+    "CLI and module usage modes",
+    "OOP-styled code generation option",
+    "Support for various HTTP content types (JSON, form-data, URL-encoded)",
+    "Automatic header extraction and cookie handling",
+    "PEP8-compliant code output"
+  ],
+  "publicApiSurface": [
+    "HTTPConverter(file, source='burpsuite')",
+    "HTTPConverter.extract(use_oop=False, filename='code.py', force_dicts=False)",
+    "FunctionTemplate(method, endpoint, version, headers, ...)",
+    "httpconverter --file FILE --output OUTPUT [--use_oop] [--force_dicts]"
+  ]
+}
