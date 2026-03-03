@@ -9,19 +9,17 @@ Get started with HTTPToRequests by converting Burp Suite HTTP messages into Pyth
 
 <Steps>
   <Step title="Install HTTPToRequests">
-    Install the package using pip:
-    
-    ```bash
-    pip install httpconverter
-    ```
-    
-    Or install from source:
+    Install from source:
     
     ```bash
     git clone https://github.com/freshSauce/HTTPToRequests.git
     cd HTTPToRequests
     python setup.py install
     ```
+    
+    <Note>
+    See the [installation guide](/installation) for detailed instructions and troubleshooting.
+    </Note>
   </Step>
 
   <Step title="Prepare Your HTTP Message">
@@ -65,19 +63,19 @@ Get started with HTTPToRequests by converting Burp Suite HTTP messages into Pyth
     ```python
     import requests
     
-    def request_0():
-        url = "https://example.com/api/login"
-        headers = {
-            "Host": "example.com",
-            "Content-Type": "application/json",
-            "Authorization": "Bearer example_token"
-        }
+    def post_api_login(session):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
         json = {
             "username": "test_user",
             "password": "secure_password"
         }
-        response = requests.post(url, headers=headers, json=json)
-        return response
+        
+        response = session.post('https://example.com/api/login', headers=headers, json=json)
+    
+    def get_api_profile(session):
+        headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
+        
+        response = session.get('https://example.com/api/profile', headers=headers)
     ```
   </Step>
 </Steps>
@@ -139,21 +137,16 @@ import requests
 
 class ClassNameHere:
     def __init__(self):
-        self.session = requests.Session()
+        self.session = requests.Session()  # Place here your own class variables
     
-    def request_0(self):
-        url = "https://example.com/api/login"
-        headers = {
-            "Host": "example.com",
-            "Content-Type": "application/json",
-            "Authorization": "Bearer example_token"
-        }
+    def post_api_login(self):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
         json = {
             "username": "test_user",
             "password": "secure_password"
         }
-        response = self.session.post(url, headers=headers, json=json)
-        return response
+        
+        response = self.session.post('https://example.com/api/login', headers=headers, json=json)
 ```
 
 ### Force Dictionaries
@@ -213,24 +206,16 @@ Generated output:
 ```python
 import requests
 
-def request_0():
-    url = "https://example.com/api/login"
-    headers = {
-        "Host": "example.com",
-        "Content-Type": "application/json"
-    }
+def post_api_login(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
     json = {"username": "test_user", "password": "secure_password"}
-    response = requests.post(url, headers=headers, json=json)
-    return response
+    
+    response = session.post('https://example.com/api/login', headers=headers, json=json)
 
-def request_1():
-    url = "https://example.com/api/profile"
-    headers = {
-        "Host": "example.com",
-        "Authorization": "Bearer abc123"
-    }
-    response = requests.get(url, headers=headers)
-    return response
+def get_api_profile(session):
+    headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
+    
+    response = session.get('https://example.com/api/profile', headers=headers)
 ```
 
 ## Next Steps

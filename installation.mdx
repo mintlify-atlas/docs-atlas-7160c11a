@@ -10,16 +10,6 @@ HTTPToRequests requires Python 3.9 or higher.
 ## Installation Methods
 
 <Steps>
-  <Step title="Install via pip (Recommended)">
-    Install HTTPToRequests and all dependencies with a single command:
-    
-    ```bash
-    pip install httpconverter
-    ```
-    
-    This installs the package and makes the `httpconverter` command available globally.
-  </Step>
-  
   <Step title="Install from Source">
     Clone the repository and install using setup.py:
     
@@ -103,18 +93,13 @@ If you're installing from source, make sure you have Python 3.9+ installed. Olde
 
 ### Permission Errors
 
-If you encounter permission errors during installation, try using:
-
-```bash
-pip install --user httpconverter
-```
-
-Or use a virtual environment:
+If you encounter permission errors during installation, use a virtual environment:
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install httpconverter
+cd HTTPToRequests
+python setup.py install
 ```
 
 ### Import Errors

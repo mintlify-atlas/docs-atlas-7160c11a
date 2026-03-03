@@ -93,17 +93,14 @@ converter.extract(filename="login.py")
     ```python login.py
     import requests
 
-    def request_0():
-        url = 'https://example.com/api/login'
-        headers = {
-            'Host': 'example.com',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer example_token'
+    def post_api_login(session):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
+        json = {
+            "username": "test_user",
+            "password": "secure_password"
         }
-        json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
         
-        response = requests.post(url, headers=headers, json=json)
-        return response
+        response = session.post('https://example.com/api/login', headers=headers, json=json)
     ```
   </Tab>
   
@@ -113,29 +110,29 @@ converter.extract(filename="login.py")
 
     class ClassNameHere:
         def __init__(self):
-            self.session = requests.Session()
+            self.session = requests.Session()  # Place here your own class variables
         
-        def request_0(self):
-            url = 'https://example.com/api/login'
-            headers = {
-                'Host': 'example.com',
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer example_token'
+        def post_api_login(self):
+            headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
+            json = {
+                "username": "test_user",
+                "password": "secure_password"
             }
-            json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
             
-            response = self.session.post(url, headers=headers, json=json)
-            return response
+            response = self.session.post('https://example.com/api/login', headers=headers, json=json)
     ```
   </Tab>
   
   <Tab title="Usage">
     ```python Using the Generated Code
     import requests
-    from login import request_0
+    from login import post_api_login
+    
+    # Create a session
+    session = requests.Session()
     
     # Call the generated function
-    response = request_0()
+    response = post_api_login(session)
     
     # Process response
     if response.status_code == 200:
@@ -168,29 +165,28 @@ Authorization: Bearer abc123
 ```python
 import requests
 
-def request_1():
-    url = 'https://example.com/api/profile'
-    headers = {
-        'Host': 'example.com',
-        'Authorization': 'Bearer abc123'
-    }
+def get_api_profile(session):
+    headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
     
-    response = requests.get(url, headers=headers)
-    return response
+    response = session.get('https://example.com/api/profile', headers=headers)
 ```
 
 ### Usage Example
 
 ```python
-from login import request_0
-from profile import request_1
+import requests
+from login import post_api_login
+from profile import get_api_profile
+
+# Create session
+session = requests.Session()
 
 # Login first
-login_response = request_0()
+login_response = post_api_login(session)
 token = login_response.json().get('token')
 
 # Get profile
-profile_response = request_1()
+profile_response = get_api_profile(session)
 profile_data = profile_response.json()
 print(f"User profile: {profile_data}")
 ```
@@ -216,16 +212,11 @@ username=john_doe&email=john@example.com&age=30
     ```python Without --force_dicts
     import requests
 
-    def request_0():
-        url = 'https://example.com/api/submit'
-        headers = {
-            'Host': 'example.com',
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+    def post_api_submit(session):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/x-www-form-urlencoded'}
         data = 'username=john_doe&email=john@example.com&age=30'
         
-        response = requests.post(url, headers=headers, data=data)
-        return response
+        response = session.post('https://example.com/api/submit', headers=headers, data=data)
     ```
   </Tab>
   
@@ -233,16 +224,11 @@ username=john_doe&email=john@example.com&age=30
     ```python With --force_dicts
     import requests
 
-    def request_0():
-        url = 'https://example.com/api/submit'
-        headers = {
-            'Host': 'example.com',
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+    def post_api_submit(session):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/x-www-form-urlencoded'}
         data = {'username':'john_doe', 'email':'john@example.com', 'age':'30'}
         
-        response = requests.post(url, headers=headers, data=data)
-        return response
+        response = session.post('https://example.com/api/submit', headers=headers, data=data)
     ```
   </Tab>
 </Tabs>
@@ -278,19 +264,11 @@ Important document
 ```python
 import requests
 
-def request_0():
-    url = 'https://example.com/api/upload'
-    headers = {
-        'Host': 'example.com',
-        'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
-    }
-    files = {
-        'file': 'document.pdf',
-        'description': 'Important document'
-    }
+def post_api_upload(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'}
+    form = {'file': 'document.pdf', 'description': 'Important document'}
     
-    response = requests.post(url, headers=headers, files=files)
-    return response
+    response = session.post('https://example.com/api/upload', headers=headers, files=form)
 ```
 
 <Note>
@@ -314,29 +292,21 @@ import requests
 
 class ClassNameHere:
     def __init__(self):
-        self.session = requests.Session()
+        self.session = requests.Session()  # Place here your own class variables
     
-    def request_0(self):
-        """Login endpoint"""
-        url = 'https://example.com/api/login'
-        headers = {
-            'Host': 'example.com',
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer example_token'
+    def post_api_login(self):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
+        json = {
+            "username": "test_user",
+            "password": "secure_password"
         }
-        json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
-        response = self.session.post(url, headers=headers, json=json)
-        return response
+        
+        response = self.session.post('https://example.com/api/login', headers=headers, json=json)
     
-    def request_1(self):
-        """Profile endpoint"""
-        url = 'https://example.com/api/profile'
-        headers = {
-            'Host': 'example.com',
-            'Authorization': 'Bearer abc123'
-        }
-        response = self.session.get(url, headers=headers)
-        return response
+    def get_api_profile(self):
+        headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
+        
+        response = self.session.get('https://example.com/api/profile', headers=headers)
 ```
 
 ### Using the API Client
@@ -348,11 +318,11 @@ from api import ClassNameHere
 class APIClient(ClassNameHere):
     def login(self, username, password):
         """Custom login method"""
-        return self.request_0()
+        return self.post_api_login()
     
     def get_profile(self):
         """Get user profile"""
-        return self.request_1()
+        return self.get_api_profile()
 
 # Use the client
 client = APIClient()
@@ -414,12 +384,12 @@ class TestAPIClient:
         self.client = ClassNameHere()
     
     def test_login(self):
-        response = self.client.request_0()
+        response = self.client.post_api_login()
         assert response.status_code == 200
         assert 'token' in response.json()
     
     def test_profile(self):
-        response = self.client.request_1()
+        response = self.client.get_api_profile()
         assert response.status_code == 200
         data = response.json()
         assert 'username' in data
