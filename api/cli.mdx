@@ -1,0 +1,155 @@
+---
+title: CLI Reference
+description: Complete command-line interface reference for HTTPToRequests converter
+---
+
+## Command Line Interface
+
+HTTPToRequests provides a command-line interface for converting HTTP-like files (such as Burp Suite exports) into Python requests code.
+
+### Usage
+
+```bash
+python -m httpconverter.cli --file <input> --output <output> [options]
+```
+
+Or if installed as a package:
+
+```bash
+httpconverter --file <input> --output <output> [options]
+```
+
+### Arguments
+
+<ParamField path="--file" type="string" required>
+  Path to the input file containing HTTP requests. Typically an XML file exported from Burp Suite.
+  
+  **Example:** `--file burp_export.xml`
+</ParamField>
+
+<ParamField path="--output" type="string" required>
+  Path to the output Python file where the generated requests code will be saved.
+  
+  **Example:** `--output requests_code.py`
+</ParamField>
+
+### Options
+
+<ParamField path="--use_oop" type="flag" default="False">
+  Use object-oriented programming style for function generation. When enabled, generates a class with methods instead of standalone functions.
+  
+  When `--use_oop` is used:
+  - Creates a class structure with `__init__` method
+  - Uses `self.session` for requests
+  - Functions become class methods with `self` parameter
+  
+  When omitted:
+  - Generates standalone functions
+  - Functions take `session` as a parameter
+</ParamField>
+
+<ParamField path="--force_dicts" type="flag" default="False">
+  Force arguments and data to be dictionaries instead of strings. Useful for form-encoded data that you want as Python dictionaries.
+  
+  When enabled:
+  - Form data is converted to dictionary format
+  - URL-encoded data becomes Python dictionaries
+  
+  When omitted:
+  - Some data may remain as strings (more faithful to original format)
+</ParamField>
+
+### Examples
+
+#### Basic Conversion
+
+Convert a Burp Suite export to Python requests functions:
+
+```bash
+python -m httpconverter.cli --file burp_export.xml --output api_requests.py
+```
+
+**Output:** Generates `api_requests.py` with standalone functions.
+
+#### OOP Style Generation
+
+Generate object-oriented code with a class structure:
+
+```bash
+python -m httpconverter.cli --file burp_export.xml --output api_client.py --use_oop
+```
+
+**Output:** Generates `api_client.py` with a class containing request methods.
+
+#### Force Dictionary Format
+
+Convert form data to dictionary format:
+
+```bash
+python -m httpconverter.cli --file burp_export.xml --output api_requests.py --force_dicts
+```
+
+**Output:** Form-encoded data is converted to Python dictionaries.
+
+#### Combined Options
+
+Use both OOP style and force dictionaries:
+
+```bash
+python -m httpconverter.cli --file burp_export.xml --output api_client.py --use_oop --force_dicts
+```
+
+**Output:** Generates a class-based structure with all data as dictionaries.
+
+### Exit Codes
+
+The CLI returns the following exit codes:
+
+- `0`: Success - File converted and saved successfully
+- Non-zero: Error occurred during conversion
+
+### Example Output
+
+Given a Burp Suite XML file with POST and GET requests, running:
+
+```bash
+python -m httpconverter.cli --file example.xml --output output.py
+```
+
+Generates `output.py`:
+
+```python
+import requests
+
+def post_api_login(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+    json = {'username': 'user', 'password': 'pass'}
+    
+    response = session.post('https://example.com/api/login', headers=headers, json=json)
+
+def get_api_users(session):
+    headers = {'Host': 'example.com'}
+    
+    response = session.get('https://example.com/api/users', headers=headers)
+```
+
+With `--use_oop`:
+
+```python
+import requests
+
+class ClassNameHere:
+    def __init__(self):
+        self.session = requests.Session()  # Place here your own class variables
+    
+    def post_api_login(self):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+        json = {'username': 'user', 'password': 'pass'}
+        
+        response = self.session.post('https://example.com/api/login', headers=headers, json=json)
+    
+    def get_api_users(self):
+        headers = {'Host': 'example.com'}
+        
+        response = self.session.get('https://example.com/api/users', headers=headers)
+```

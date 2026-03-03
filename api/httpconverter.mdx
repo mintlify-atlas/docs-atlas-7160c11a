@@ -1,0 +1,159 @@
+---
+title: HTTPConverter
+description: API reference for the HTTPConverter class that converts HTTP-like files into Python requests code
+---
+
+## HTTPConverter
+
+The main class for converting HTTP-like files (such as Burp Suite exports) into Python requests functions.
+
+### Constructor
+
+```python
+HTTPConverter(file: str | TextIOWrapper, source: str = "burpsuite")
+```
+
+Creates a new HTTPConverter instance.
+
+<ParamField path="file" type="str | TextIOWrapper" required>
+  Filename or file object to be used. Can be a file path string like `"file.xml"` or an opened file object like `open('file.xml', 'r')`.
+</ParamField>
+
+<ParamField path="source" type="str" default="burpsuite">
+  Source format of the file to be used. Currently only supports `"burpsuite"`.
+</ParamField>
+
+### Properties
+
+#### file
+
+```python
+@property
+file -> str
+```
+
+Returns the filename of the currently loaded file.
+
+```python
+@file.setter
+file(new_file: str)
+```
+
+Sets a new file to be processed. Automatically reads and validates the new file.
+
+<ParamField path="new_file" type="str" required>
+  Path to the new file to load.
+</ParamField>
+
+**Raises:** Exception if the file does not exist.
+
+#### source
+
+```python
+source: str
+```
+
+The source format type (e.g., "burpsuite").
+
+#### force_dicts
+
+```python
+force_dicts: bool
+```
+
+Whether to force arguments to dictionary format. Default is `False`.
+
+#### text
+
+```python
+text: BeautifulSoup
+```
+
+Parsed BeautifulSoup object containing the file content.
+
+### Methods
+
+#### extract()
+
+```python
+extract(use_oop: bool = False, filename: str = "code.py", force_dicts: bool = False) -> None
+```
+
+Extracts HTTP requests from the file and generates Python code with requests functions.
+
+<ParamField path="use_oop" type="bool" default="False">
+  If `True`, generates code following OOP syntax with a class structure and `self.session`. If `False`, generates standalone functions with a `session` parameter.
+</ParamField>
+
+<ParamField path="filename" type="str" default="code.py">
+  Name of the output file where the generated code will be written.
+</ParamField>
+
+<ParamField path="force_dicts" type="bool" default="False">
+  If `True`, forces arguments to be dictionaries (e.g., form-data, params, etc.). If `False`, some arguments may be strings.
+</ParamField>
+
+**Example:**
+
+```python
+from httpconverter import HTTPConverter
+
+# Create converter instance
+converter = HTTPConverter(file="burp_export.xml")
+
+# Extract and generate code
+converter.extract(use_oop=True, filename="output.py", force_dicts=True)
+```
+
+### Static Methods
+
+#### _validate_file()
+
+```python
+@staticmethod
+_validate_file(content: BeautifulSoup, source: str = "burpsuite") -> bool
+```
+
+Validates that the file content matches the expected source format.
+
+<ParamField path="content" type="BeautifulSoup" required>
+  Parsed BeautifulSoup object to validate.
+</ParamField>
+
+<ParamField path="source" type="str" default="burpsuite">
+  Source format to validate against.
+</ParamField>
+
+<ResponseField name="return" type="bool">
+  Returns `True` if the file is valid for the given source, `False` otherwise.
+</ResponseField>
+
+**Raises:** NotImplementedError if source other than "burpsuite" is provided.
+
+#### _extractor()
+
+```python
+@staticmethod
+_extractor(content: BeautifulSoup, force_dicts: bool = False) -> dict
+```
+
+Extracts HTTP request information from BeautifulSoup content.
+
+<ParamField path="content" type="BeautifulSoup" required>
+  BeautifulSoup object containing a single HTTP request.
+</ParamField>
+
+<ParamField path="force_dicts" type="bool" default="False">
+  Whether to force data arguments to dictionary format.
+</ParamField>
+
+<ResponseField name="return" type="dict">
+  Dictionary containing extracted request components:
+  - `method`: HTTP method (GET, POST, etc.)
+  - `endpoint`: Request endpoint/path
+  - `version`: HTTP version
+  - `headers`: Dictionary of HTTP headers
+  - `json`: JSON payload (if applicable)
+  - `data`: Form data or body (if applicable)
+  - `form`: Multipart form data (if applicable)
+</ResponseField>

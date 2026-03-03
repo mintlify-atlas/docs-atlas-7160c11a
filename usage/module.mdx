@@ -1,0 +1,310 @@
+---
+title: Python Module Usage
+description: Use HTTPToRequests programmatically in your Python applications
+---
+
+HTTPToRequests can be used as a Python module, allowing you to integrate HTTP-to-Python conversion into your own applications and workflows.
+
+## Installation
+
+First, import the `HTTPConverter` class:
+
+```python
+from httpconverter import HTTPConverter
+```
+
+## HTTPConverter Class
+
+The `HTTPConverter` class is the main interface for converting HTTP messages to Python requests code.
+
+### Constructor
+
+```python
+HTTPConverter(file: str | TextIOWrapper, source: str = "burpsuite")
+```
+
+<ParamField path="file" type="str | TextIOWrapper" required>
+  Path to the input file or an open file object (e.g., `"file.xml"` or `open('file.xml', 'r')`)
+</ParamField>
+
+<ParamField path="source" type="str" default="burpsuite">
+  Source format of the HTTP messages. Currently only "burpsuite" is supported
+</ParamField>
+
+## Basic Usage
+
+The simplest way to use HTTPToRequests programmatically:
+
+```python
+from httpconverter import HTTPConverter
+
+# Initialize converter with file path
+file = "./examples/example.xml"
+converter = HTTPConverter(file)
+
+# Extract and generate Python code
+converter.extract()
+```
+
+<Note>
+By default, this generates a file named `code.py` in the current directory with function-based code.
+</Note>
+
+## Extract Method
+
+The `extract()` method performs the conversion and generates the output file.
+
+```python
+converter.extract(use_oop=False, filename="code.py", force_dicts=False)
+```
+
+<ParamField path="use_oop" type="bool" default="false">
+  Generate object-oriented code with a class structure instead of standalone functions
+</ParamField>
+
+<ParamField path="filename" type="str" default="code.py">
+  Name of the output file where the generated code will be written
+</ParamField>
+
+<ParamField path="force_dicts" type="bool" default="false">
+  Force arguments to dictionary format (useful for form-data, params, etc.)
+</ParamField>
+
+## Examples
+
+### Basic Conversion
+
+<CodeGroup>
+```python Simple Usage
+from httpconverter import HTTPConverter
+
+file = "./examples/example.xml"
+converter = HTTPConverter(file)
+converter.extract()
+# Generates code.py with function-based code
+```
+
+```python Custom Output File
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter("./examples/example.xml")
+converter.extract(filename="my_requests.py")
+# Generates my_requests.py
+```
+</CodeGroup>
+
+### Object-Oriented Code Generation
+
+Generate class-based code for better organization:
+
+```python
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter("./examples/example.xml")
+converter.extract(use_oop=True, filename="api_client.py")
+```
+
+<Tabs>
+  <Tab title="Generated Class">
+    ```python api_client.py
+    import requests
+
+    class ClassNameHere:
+        def __init__(self):
+            self.session = requests.Session()
+        
+        def request_0(self):
+            url = 'https://example.com/api/login'
+            headers = {'Content-Type': 'application/json'}
+            json = '{"username": "test_user", "password": "secure_password"}'
+            response = self.session.post(url, headers=headers, json=json)
+            return response
+    ```
+  </Tab>
+  
+  <Tab title="Usage">
+    ```python Using the Generated Class
+    from api_client import ClassNameHere
+    
+    # Create instance
+    client = ClassNameHere()
+    
+    # Make request
+    response = client.request_0()
+    print(response.json())
+    ```
+  </Tab>
+</Tabs>
+
+### Using File Objects
+
+You can pass file objects directly instead of file paths:
+
+```python
+from httpconverter import HTTPConverter
+
+with open("./examples/example.xml", "r") as f:
+    converter = HTTPConverter(f)
+    converter.extract(filename="output.py")
+```
+
+### Force Dictionary Formatting
+
+Convert form data and URL-encoded parameters to dictionaries:
+
+```python
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter("form_requests.xml")
+converter.extract(
+    force_dicts=True,
+    filename="form_handlers.py"
+)
+```
+
+<Warning>
+When `force_dicts=True`, URL-encoded data like `username=test&password=123` is converted to `{'username':'test', 'password':'123'}`.
+</Warning>
+
+### Complete Example with All Options
+
+```python
+from httpconverter import HTTPConverter
+
+def convert_http_to_requests():
+    # Initialize converter
+    converter = HTTPConverter(
+        file="./examples/example.xml",
+        source="burpsuite"  # Currently the only supported source
+    )
+    
+    # Generate OOP code with dictionary formatting
+    converter.extract(
+        use_oop=True,
+        filename="api_client.py",
+        force_dicts=True
+    )
+    
+    print("Conversion complete! Check api_client.py")
+
+if __name__ == "__main__":
+    convert_http_to_requests()
+```
+
+## Changing Input Files
+
+You can reuse the same converter instance with different files:
+
+```python
+from httpconverter import HTTPConverter
+
+# Create converter
+converter = HTTPConverter("file1.xml")
+converter.extract(filename="output1.py")
+
+# Change to a different file
+converter.file = "file2.xml"
+converter.extract(filename="output2.py")
+```
+
+## Properties and Attributes
+
+### file Property
+
+Get or set the input file:
+
+```python
+converter = HTTPConverter("example.xml")
+
+# Get current file
+print(converter.file)  # example.xml
+
+# Change file
+converter.file = "another.xml"
+```
+
+### source Attribute
+
+The source format (currently only "burpsuite"):
+
+```python
+converter = HTTPConverter("example.xml", source="burpsuite")
+print(converter.source)  # burpsuite
+```
+
+## Error Handling
+
+<CodeGroup>
+```python File Not Found
+from httpconverter import HTTPConverter
+
+try:
+    converter = HTTPConverter("nonexistent.xml")
+except Exception as e:
+    print(f"Error: {e}")
+    # Error: File nonexistent.xml does not exist!
+```
+
+```python Invalid Source
+from httpconverter import HTTPConverter
+
+try:
+    converter = HTTPConverter("file.xml", source="other")
+except NotImplementedError as e:
+    print(f"Error: {e}")
+    # Support for other HTTP-content files is not implemented yet
+```
+</CodeGroup>
+
+## Integration Examples
+
+### Automation Script
+
+```python
+import os
+from httpconverter import HTTPConverter
+
+def batch_convert(input_dir, output_dir):
+    """Convert all XML files in a directory"""
+    for filename in os.listdir(input_dir):
+        if filename.endswith(".xml"):
+            input_path = os.path.join(input_dir, filename)
+            output_path = os.path.join(output_dir, filename.replace(".xml", ".py"))
+            
+            converter = HTTPConverter(input_path)
+            converter.extract(filename=output_path, use_oop=True)
+            print(f"Converted {filename} -> {output_path}")
+
+batch_convert("./burp_exports", "./generated_code")
+```
+
+### Build Tool Integration
+
+```python
+from httpconverter import HTTPConverter
+import sys
+
+def build_api_client():
+    """Generate API client as part of build process"""
+    try:
+        converter = HTTPConverter("api_requests.xml")
+        converter.extract(
+            use_oop=True,
+            filename="src/api/client.py",
+            force_dicts=True
+        )
+        print("API client generated successfully")
+        return 0
+    except Exception as e:
+        print(f"Build failed: {e}", file=sys.stderr)
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(build_api_client())
+```
+
+## Next Steps
+
+- Explore [real-world examples](/usage/examples) with different request types
+- Learn about [CLI usage](/usage/cli) for command-line conversion
+- Check the [API reference](/api/httpconverter) for detailed class documentation

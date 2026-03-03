@@ -1,0 +1,216 @@
+---
+title: FunctionTemplate
+description: API reference for the FunctionTemplate class that generates Python requests function code
+---
+
+## FunctionTemplate
+
+A template class that builds Python function code for making HTTP requests using the requests library.
+
+### Constructor
+
+```python
+FunctionTemplate(
+    method,
+    endpoint,
+    version,
+    headers,
+    form=None,
+    params=None,
+    json=None,
+    data=None,
+    use_oop=False,
+    force_dicts=False
+)
+```
+
+Creates a new FunctionTemplate instance with HTTP request details.
+
+<ParamField path="method" type="str" required>
+  HTTP method for the request (e.g., `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`).
+</ParamField>
+
+<ParamField path="endpoint" type="str" required>
+  The endpoint/path for the HTTP request (e.g., `"/api/users"`).
+</ParamField>
+
+<ParamField path="version" type="str" required>
+  HTTP version string (e.g., `"HTTP/1.1"`, `"HTTP/2"`).
+</ParamField>
+
+<ParamField path="headers" type="dict" required>
+  Dictionary of HTTP headers to include in the request.
+</ParamField>
+
+<ParamField path="form" type="dict" default="None">
+  Multipart form data as a dictionary. Used for `multipart/form-data` requests.
+</ParamField>
+
+<ParamField path="params" type="dict" default="None">
+  URL query parameters as a dictionary.
+</ParamField>
+
+<ParamField path="json" type="dict" default="None">
+  JSON payload as a dictionary. Used for `application/json` requests.
+</ParamField>
+
+<ParamField path="data" type="dict | str" default="None">
+  Form data or request body. Can be a string or dictionary depending on `force_dicts` setting.
+</ParamField>
+
+<ParamField path="use_oop" type="bool" default="False">
+  If `True`, generates code as a class method with `self.session`. If `False`, generates a standalone function with `session` parameter.
+</ParamField>
+
+<ParamField path="force_dicts" type="bool" default="False">
+  If `True`, forces data to be formatted as a dictionary. If `False`, data may be a string.
+</ParamField>
+
+### Properties
+
+#### method
+
+```python
+method: str
+```
+
+The HTTP method for this request.
+
+#### endpoint
+
+```python
+endpoint: str
+```
+
+The endpoint/path for this request.
+
+#### version
+
+```python
+version: str
+```
+
+The HTTP version string.
+
+#### headers
+
+```python
+headers: dict
+```
+
+Dictionary of HTTP headers.
+
+#### data
+
+```python
+data: dict | str
+```
+
+Form data or request body content.
+
+#### form
+
+```python
+form: dict
+```
+
+Multipart form data.
+
+#### params
+
+```python
+params: dict
+```
+
+URL query parameters.
+
+#### json
+
+```python
+json: dict
+```
+
+JSON payload for the request.
+
+#### use_oop
+
+```python
+use_oop: bool
+```
+
+Whether to generate OOP-style code.
+
+#### force_dicts
+
+```python
+force_dicts: bool
+```
+
+Whether to force dictionary formatting for data.
+
+### Methods
+
+#### build()
+
+```python
+build() -> str
+```
+
+Builds and returns the Python function code as a string.
+
+<ResponseField name="return" type="str">
+  Generated Python code string for a requests function. The function name is automatically generated from the HTTP method and endpoint (e.g., `get_api_users`, `post_auth_login`).
+</ResponseField>
+
+**Example:**
+
+```python
+from httpconverter import FunctionTemplate
+
+template = FunctionTemplate(
+    method="POST",
+    endpoint="/api/users",
+    version="HTTP/1.1",
+    headers={"Host": "example.com", "Content-Type": "application/json"},
+    json={"name": "John", "email": "john@example.com"},
+    use_oop=False,
+    force_dicts=False
+)
+
+code = template.build()
+print(code)
+```
+
+**Output:**
+
+```python
+def post_api_users(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+    json = {'name': 'John', 'email': 'john@example.com'}
+    
+    response = session.post('https://example.com/api/users', headers=headers, json=json)
+```
+
+**OOP Example:**
+
+```python
+template = FunctionTemplate(
+    method="GET",
+    endpoint="/api/users/123",
+    version="HTTP/1.1",
+    headers={"Host": "example.com"},
+    use_oop=True
+)
+
+code = template.build()
+print(code)
+```
+
+**Output:**
+
+```python
+    def get_api_users_123(self):
+        headers = {'Host': 'example.com'}
+        
+        response = self.session.get('https://example.com/api/users/123', headers=headers)
+```

@@ -1,0 +1,263 @@
+---
+title: "Burp Suite Integration"
+description: "Export HTTP requests from Burp Suite and convert them to Python code"
+---
+
+HTTPToRequests is designed to work seamlessly with Burp Suite exports, allowing you to capture HTTP traffic and automatically generate Python code for it.
+
+## Exporting from Burp Suite
+
+Follow these steps to export HTTP requests from Burp Suite:
+
+<Steps>
+  <Step title="Capture Requests">
+    Use Burp Suite's Proxy tab to intercept and capture HTTP/HTTPS requests from your application.
+  </Step>
+  <Step title="Select Requests">
+    Navigate to the **Proxy > HTTP history** or **Target > Site map** tab.
+    
+    Select the requests you want to convert to Python code (use Ctrl/Cmd+Click for multiple selections).
+  </Step>
+  <Step title="Export as XML">
+    Right-click on the selected requests and choose **Save items**.
+    
+    Save the file with a `.xml` extension (e.g., `requests.xml`).
+  </Step>
+  <Step title="Convert to Python">
+    Use HTTPToRequests to process the exported XML file:
+    
+    ```python
+    from httpconverter import HTTPConverter
+    
+    converter = HTTPConverter('requests.xml')
+    converter.extract(filename='generated_requests.py')
+    ```
+  </Step>
+</Steps>
+
+## Expected XML Format
+
+Burp Suite exports use a specific XML structure. Here's an example showing the expected format:
+
+```xml
+<?xml version="1.0"?>
+<items burpVersion="2024.11.2" exportTime="Mon Dec 30 00:06:23 CST 2024">
+    <item>
+        <time>Sun Dec 29 23:52:11 CST 2024</time>
+        <url><![CDATA[https://example.com/api/login]]></url>
+        <host ip="192.168.0.1">example.com</host>
+        <port>443</port>
+        <protocol>https</protocol>
+        <method><![CDATA[POST]]></method>
+        <path><![CDATA[/api/login]]></path>
+        <extension>null</extension>
+        <request base64="false"><![CDATA[POST /api/login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Authorization: Bearer example_token
+
+{
+    "username": "test_user",
+    "password": "secure_password"
+}
+]]></request>
+        <status>200</status>
+        <responselength>128</responselength>
+        <mimetype>application/json</mimetype>
+        <response base64="false"><![CDATA[HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "message": "Login successful",
+    "token": "abc123"
+}
+]]></response>
+        <comment><![CDATA[Login endpoint]]></comment>
+    </item>
+</items>
+```
+
+### Key XML Elements
+
+<AccordionGroup>
+  <Accordion title="Root Element: <items>">
+    The root `<items>` element contains metadata about the export:
+    
+    - `burpVersion`: The version of Burp Suite used for the export
+    - `exportTime`: When the export was created
+    
+    Each `<item>` represents a single HTTP request/response pair.
+  </Accordion>
+  
+  <Accordion title="Request Element: <request>">
+    The `<request>` element contains the raw HTTP request:
+    
+    ```xml
+    <request base64="false"><![CDATA[POST /api/login HTTP/1.1
+    Host: example.com
+    Content-Type: application/json
+    
+    {"username": "test_user"}
+    ]]></request>
+    ```
+    
+    - Must be wrapped in `CDATA` section
+    - Contains complete HTTP request including method, headers, and body
+    - `base64="false"` indicates plain text (not base64 encoded)
+  </Accordion>
+  
+  <Accordion title="Response Element: <response>">
+    The `<response>` element contains the server's response:
+    
+    ```xml
+    <response base64="false"><![CDATA[HTTP/1.1 200 OK
+    Content-Type: application/json
+    
+    {"message": "Success"}
+    ]]></response>
+    ```
+    
+    This element is parsed but not used in code generation.
+  </Accordion>
+</AccordionGroup>
+
+## Validation Logic
+
+HTTPToRequests validates that the XML file is a proper Burp Suite export before processing. The validation logic from `main.py:41-48`:
+
+```python
+@staticmethod
+def _validate_file(content: BeautifulSoup, source: str = "burpsuite") -> bool:
+    if source == "burpsuite":
+        items = content.find("items")
+        is_burpsuite = True if items.get("burpVersion") else False
+        return is_burpsuite
+    else:
+        raise NotImplementedError(
+            "Support for other HTTP-content files is not implemented yet. Please, submit an example of your file to implement it!")
+```
+
+### What Gets Validated
+
+<CardGroup cols={2}>
+  <Card title="✓ Valid" icon="check" color="#10b981">
+    - XML file with `<items>` root element
+    - `burpVersion` attribute present
+    - One or more `<item>` elements with `<request>` tags
+  </Card>
+  <Card title="✗ Invalid" icon="xmark" color="#ef4444">
+    - Missing `burpVersion` attribute
+    - Non-XML file format
+    - Empty or malformed XML structure
+  </Card>
+</CardGroup>
+
+The validation process from `main.py:50-59`:
+
+```python
+def _read_file(self) -> BeautifulSoup:
+    if self._file.name.endswith(".xml") or "." not in self._file.name:
+        content = BeautifulSoup(self._file.read(), features="xml")
+        if self._validate_file(content, source=self.source):
+            return content
+        else:
+            raise NotImplementedError(
+                "Support for other HTTP-content files is not implemented yet. Please, submit an example of your file to implement it!")
+    else:
+        raise NotImplementedError("Support for other file types is not implemented yet.")
+```
+
+## Example: Complete Workflow
+
+Here's a complete example of exporting from Burp Suite and generating Python code:
+
+<CodeGroup>
+```python Basic Usage
+from httpconverter import HTTPConverter
+
+# Load the Burp Suite export
+converter = HTTPConverter('burp_export.xml')
+
+# Generate Python code
+converter.extract(filename='api_requests.py')
+```
+
+```python Advanced Usage
+from httpconverter import HTTPConverter
+
+# Load the Burp Suite export
+converter = HTTPConverter('burp_export.xml', source='burpsuite')
+
+# Generate class-based code with dictionary formatting
+converter.extract(
+    use_oop=True,
+    force_dicts=True,
+    filename='api_client.py'
+)
+```
+
+```python Using File Object
+from httpconverter import HTTPConverter
+
+# Load using file object
+with open('burp_export.xml', 'r') as file:
+    converter = HTTPConverter(file)
+    converter.extract(filename='generated_code.py')
+```
+</CodeGroup>
+
+## Generated Output
+
+Given the example XML above, HTTPToRequests generates:
+
+```python
+import requests
+
+def post_api_login(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
+    json = {"username": "test_user", "password": "secure_password"}
+
+    response = session.post('https://example.com/api/login', headers=headers, json=json)
+```
+
+<Tip>
+Burp Suite exports can contain dozens or hundreds of requests. HTTPToRequests processes all `<item>` elements in the XML file and generates a separate function for each request.
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="NotImplementedError: Support for other HTTP-content files...">
+    This error occurs when the XML file doesn't contain a `burpVersion` attribute in the `<items>` root element.
+    
+    **Solution:** Ensure you're exporting from Burp Suite using **Save items**, not a custom export format.
+  </Accordion>
+  
+  <Accordion title="File does not exist error">
+    The specified XML file path is invalid.
+    
+    **Solution:** Check the file path and ensure the XML file exists:
+    ```python
+    import os
+    print(os.path.exists('burp_export.xml'))  # Should print True
+    ```
+  </Accordion>
+  
+  <Accordion title="Empty output file generated">
+    The XML file may not contain any `<request>` elements.
+    
+    **Solution:** Verify the XML contains `<item>` elements with `<request>` tags. Open the XML in a text editor to inspect its structure.
+  </Accordion>
+</AccordionGroup>
+
+## Limitations
+
+<Warning>
+Currently, HTTPToRequests only supports Burp Suite XML exports. Other formats (HAR, PCAP, etc.) are not yet implemented. If you need support for additional formats, consider contributing to the project.
+</Warning>
+
+From `main.py:47-48`, other sources will raise:
+```python
+raise NotImplementedError(
+    "Support for other HTTP-content files is not implemented yet. Please, submit an example of your file to implement it!")
+```

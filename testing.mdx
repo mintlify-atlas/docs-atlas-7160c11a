@@ -1,0 +1,186 @@
+---
+title: Testing
+description: Learn how to run tests and understand the test structure for HTTPToRequests
+---
+
+HTTPToRequests uses pytest for its test suite, ensuring code quality and reliability across all features.
+
+## Running Tests
+
+To run the entire test suite:
+
+```bash
+pytest ./tests/
+```
+
+### Running Specific Tests
+
+Run a specific test file:
+
+```bash
+pytest tests/test_extractor.py
+```
+
+Run a specific test function:
+
+```bash
+pytest tests/test_extractor.py::test_extractor_json
+```
+
+## Test Structure
+
+The test suite is organized into focused test files, each covering a specific aspect of the HTTPConverter functionality:
+
+### test_validate_file.py
+
+Tests for file validation, ensuring the converter only processes valid Burp Suite files:
+
+```python
+def test_validate_file_valid():
+    content = BeautifulSoup('<items burpVersion="2024.11"></items>', 'xml')
+    assert HTTPConverter._validate_file(content) == True
+
+def test_validate_file_invalid():
+    content = BeautifulSoup('<items></items>', 'xml')
+    assert HTTPConverter._validate_file(content) == False
+
+def test_validate_file_unsupported_source():
+    content = BeautifulSoup('<items></items>', 'xml')
+    with pytest.raises(NotImplementedError):
+        HTTPConverter._validate_file(content, source="unknown")
+```
+
+### test_read_file.py
+
+Tests file reading functionality using pytest fixtures for setup:
+
+```python
+@pytest.fixture
+def create_valid_burp_file(tmp_path):
+    filepath = tmp_path / "valid_burp.xml"
+    filepath.write_text('<items burpVersion="2024.11"><item></item></items>')
+    return filepath
+
+def test_read_file_valid(create_valid_burp_file):
+    converter = HTTPConverter(file=str(create_valid_burp_file))
+    assert isinstance(converter.text, BeautifulSoup)
+
+def test_read_file_invalid_format(create_invalid_burp_file):
+    with pytest.raises(NotImplementedError):
+        HTTPConverter(file=str(create_invalid_burp_file))
+```
+
+### test_extractor.py
+
+Tests HTTP message parsing and extraction:
+
+```python
+def test_extractor_json():
+    content = BeautifulSoup(
+        '''<request base64="false">POST /api/login HTTP/1.1\nHost: example.com\nContent-Type: application/json\n\n{"username": "user", "password": "pass"}</request>''', 'xml'
+    )
+    result = HTTPConverter._extractor(content)
+    assert result['method'] == "POST"
+    assert result['endpoint'] == "/api/login"
+    assert result['headers'] == {"Host": "example.com", "Content-Type": "application/json"}
+    assert result['json'] == '{"username": "user", "password": "pass"}'
+
+def test_extractor_no_headers():
+    content = BeautifulSoup('<request base64="false">GET /api/test HTTP/1.1\n</request>', 'xml')
+    result = HTTPConverter._extractor(content)
+    assert result['headers'] == {}
+```
+
+### test_extract.py
+
+End-to-end tests for the complete conversion process:
+
+```python
+@pytest.fixture
+def create_request_file(tmp_path):
+    filepath = tmp_path / "request_burp.xml"
+    filepath.write_text(
+        '''<items burpVersion="2024.11">
+        <item>
+            <request base64="false"><![CDATA[GET /api/profile HTTP/1.1\nHost: example.com\nAuthorization: Bearer token]]></request>
+        </item>
+        </items>'''
+    )
+    return filepath
+
+def test_extract_valid(create_request_file, tmp_path):
+    output_file = tmp_path / "output.py"
+    converter = HTTPConverter(file=str(create_request_file))
+    converter.extract(filename=str(output_file))
+
+    assert output_file.exists()
+    with open(output_file, "r") as f:
+        content = f.read()
+        assert "def get_api_profile" in content
+```
+
+### test_errors.py
+
+Tests error handling and edge cases:
+
+```python
+def test_file_not_found():
+    with pytest.raises(FileNotFoundError, match="No such file or directory: .*"):
+        HTTPConverter("nonexistent.xml")
+
+def test_missing_host_header():
+    content = BeautifulSoup(
+        '<request base64="false">GET /api/profile HTTP/1.1\nContent-Type: application/json\n\n</request>', 'xml'
+    )
+    result = HTTPConverter._extractor(content)
+    assert "Host" not in result['headers']
+```
+
+## Writing New Tests
+
+<Steps>
+  <Step title="Identify What to Test">
+    Determine what functionality needs testing. Focus on:
+    - New features you've added
+    - Bug fixes to prevent regression
+    - Edge cases and error conditions
+  </Step>
+
+  <Step title="Choose the Right Test File">
+    Add your test to the appropriate file based on what you're testing:
+    - File validation → `test_validate_file.py`
+    - File reading → `test_read_file.py`
+    - HTTP parsing → `test_extractor.py`
+    - Full conversion → `test_extract.py`
+    - Error handling → `test_errors.py`
+  </Step>
+
+  <Step title="Write the Test">
+    Follow the existing patterns:
+    - Use descriptive test names (e.g., `test_extractor_json`)
+    - Use pytest fixtures for setup when needed
+    - Use `tmp_path` fixture for file operations
+    - Test both success and failure cases
+  </Step>
+
+  <Step title="Run and Verify">
+    Run your new test to ensure it works:
+    
+    ```bash
+    pytest tests/test_your_file.py::test_your_function -v
+    ```
+  </Step>
+</Steps>
+
+## Test Coverage
+
+The test suite covers:
+
+- File validation for Burp Suite XML format
+- HTTP request parsing (methods, endpoints, headers, bodies)
+- JSON and form data extraction
+- Code generation (both OOP and functional styles)
+- Error handling (file not found, invalid formats)
+- Edge cases (missing headers, empty requests)
+
+When contributing, ensure your changes maintain or improve test coverage.

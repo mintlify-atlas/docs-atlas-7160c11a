@@ -1,0 +1,197 @@
+---
+title: "Configuration Options"
+description: "Advanced configuration options for customizing code generation behavior"
+---
+
+HTTPToRequests provides several configuration options to customize how HTTP requests are converted into Python code.
+
+## force_dicts Option
+
+The `force_dicts` parameter controls how form-encoded data is represented in the generated code.
+
+### Default Behavior (force_dicts=False)
+
+By default, form-urlencoded data is kept as a raw string:
+
+```python
+converter = HTTPConverter('requests.xml')
+converter.extract(force_dicts=False)  # Default
+```
+
+**Generated code:**
+```python
+def post_api_form(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/x-www-form-urlencoded'}
+    data = 'username=john&password=secret123&remember=true'
+    
+    response = session.post('https://example.com/api/form', headers=headers, data=data)
+```
+
+### With force_dicts=True
+
+When enabled, form data is converted to dictionary format:
+
+```python
+converter = HTTPConverter('requests.xml')
+converter.extract(force_dicts=True)
+```
+
+**Generated code:**
+```python
+def post_api_form(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {'username':'john', 'password':'secret123', 'remember':'true'}
+    
+    response = session.post('https://example.com/api/form', headers=headers, data=data)
+```
+
+### Implementation
+
+From `main.py:83-87`, the conversion logic:
+
+```python
+elif "application/x-www-form-urlencoded" in content_type:
+    if not force_dicts:
+        data = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+    else:
+        raw_data = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+        data = "{'" + raw_data.replace("=", "':'").replace("&", "', '") + "'}"
+```
+
+## Content Type Handling
+
+The `_extractor` method automatically detects content types and generates appropriate Python code (from `main.py:76-94`):
+
+### JSON Content
+
+**HTTP Request:**
+```http
+POST /api/login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+
+{"username": "test_user", "password": "secure_password"}
+```
+
+**Generated Code:**
+```python
+def post_api_login(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+    json = {"username": "test_user", "password": "secure_password"}
+    
+    response = session.post('https://example.com/api/login', headers=headers, json=json)
+```
+
+### Form URL Encoded
+
+**HTTP Request:**
+```http
+POST /api/form HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+username=john&password=secret
+```
+
+**Generated Code:**
+```python
+def post_api_form(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/x-www-form-urlencoded'}
+    data = 'username=john&password=secret'
+    
+    response = session.post('https://example.com/api/form', headers=headers, data=data)
+```
+
+### Multipart Form Data
+
+**HTTP Request:**
+```http
+POST /api/upload HTTP/1.1
+Host: example.com
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"
+
+file_content_here
+------WebKitFormBoundary--
+```
+
+**Generated Code:**
+```python
+def post_api_upload(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'multipart/form-data'}
+    form = {'file': 'file_content_here'}
+    
+    response = session.post('https://example.com/api/upload', headers=headers, files=form)
+```
+
+### Detection Logic
+
+The content type detection from `main.py:77-93`:
+
+```python
+json, data, form = None, None, None
+content_type = headers_as_dict.get("Content-Type")
+if content_type:
+    if "application/json" in content_type:
+        json = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+
+    elif "application/x-www-form-urlencoded" in content_type:
+        if not force_dicts:
+            data = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+        else:
+            raw_data = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+            data = "{'" + raw_data.replace("=", "':'").replace("&", "', '") + "'}"
+
+    elif "multipart/form-data" in content_type:
+        args = headers_and_arguments.split("\n\n", maxsplit=1)[1]
+        form = dict(
+            map(lambda item: (item.replace("\n", "").split('"')[1], item.replace("\n", "").split('"')[2]),
+                re.findall(r"name=\".*?\"\n\n.*?\n", args)))
+```
+
+## Cookie Handling
+
+Cookies are automatically extracted from headers and removed from the headers dictionary to prevent duplication, as `requests` handles cookies separately (from `main.py:73-74`):
+
+```python
+if headers_as_dict.get("Cookie"):
+    headers_as_dict.pop("Cookie")
+```
+
+**Original HTTP Request:**
+```http
+GET /api/profile HTTP/1.1
+Host: example.com
+Cookie: session_id=abc123; user_token=xyz789
+Authorization: Bearer token123
+```
+
+**Generated Code:**
+```python
+def get_api_profile(session):
+    headers = {'Host': 'example.com', 'Authorization': 'Bearer token123'}
+    # Cookie header is removed - manage cookies via session.cookies instead
+    
+    response = session.get('https://example.com/api/profile', headers=headers)
+```
+
+<Info>
+Cookies are removed from headers because `requests.Session()` automatically manages cookies. If you need to set cookies, use `session.cookies.set()` before making requests.
+</Info>
+
+## Combining Options
+
+You can use multiple configuration options together:
+
+```python
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter('burp_export.xml')
+converter.extract(
+    use_oop=True,           # Generate class-based code
+    force_dicts=True,       # Convert form data to dictionaries
+    filename='api_client.py' # Custom output filename
+)
+```

@@ -1,0 +1,83 @@
+---
+title: Introduction
+description: Convert HTTP messages from Burp Suite and other sources into production-ready Python requests code
+---
+
+## What is HTTPToRequests?
+
+HTTPToRequests is a powerful tool that automatically converts HTTP messages into clean, production-ready Python requests code. Say goodbye to manually translating HTTP requests or doing curl-to-requests conversions.
+
+Whether you're a security researcher working with Burp Suite, a developer testing APIs, or an automation engineer, HTTPToRequests saves you time by generating PEP8-compliant Python code from HTTP message files.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Burp Suite Integration" icon="shield-halved">
+    Native support for Burp Suite XML exports - convert intercepted requests directly to Python code
+  </Card>
+  
+  <Card title="Dual Usage Modes" icon="terminal">
+    Use as a CLI tool for quick conversions or import as a Python module for programmatic use
+  </Card>
+  
+  <Card title="OOP Support" icon="object-group">
+    Generate object-oriented code with session management or simple function-based code
+  </Card>
+  
+  <Card title="Content Type Support" icon="file-code">
+    Handles JSON, form-urlencoded, and multipart/form-data content types automatically
+  </Card>
+  
+  <Card title="Smart Header Extraction" icon="brackets-curly">
+    Automatically extracts and formats headers, cookies, and authentication tokens
+  </Card>
+  
+  <Card title="PEP8 Compliant" icon="check">
+    Outputs clean, properly formatted code using autopep8 for immediate production use
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+- **Security Testing**: Convert Burp Suite intercepted requests into reusable Python scripts
+- **API Development**: Quickly generate request code from API documentation or testing tools
+- **Test Automation**: Build test suites from captured HTTP traffic
+- **Reverse Engineering**: Document and replay API interactions programmatically
+
+## Get Started
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Convert your first HTTP message in under 5 minutes
+  </Card>
+  
+  <Card title="CLI Usage" icon="terminal" href="/usage/cli">
+    Learn command-line options and workflows
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/httpconverter">
+    Explore the Python module API
+  </Card>
+</CardGroup>
+
+## Example Output
+
+From a Burp Suite export, HTTPToRequests generates clean code like this:
+
+```python
+import requests
+
+def post_api_login(session):
+    headers = {'Host': 'example.com', 'Content-Type': 'application/json', 'Authorization': 'Bearer example_token'}
+    json = {
+        "username": "test_user",
+        "password": "secure_password"
+    }
+    
+    response = session.post('https://example.com/api/login', headers=headers, json=json)
+    return response
+```
+
+<Note>
+HTTPToRequests is open source and distributed under the GNU GPLv3 License. Contributions are welcome!
+</Note>

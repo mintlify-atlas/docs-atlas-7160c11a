@@ -1,0 +1,194 @@
+---
+title: CLI Usage
+description: Complete guide to using HTTPToRequests from the command line
+---
+
+HTTPToRequests provides a powerful command-line interface for converting HTTP messages from tools like Burp Suite into Python requests code.
+
+## Basic Usage
+
+The CLI requires two mandatory arguments: an input file and an output file.
+
+```bash
+python -m httpconverter.cli --file input.xml --output output.py
+```
+
+<Note>
+After successful conversion, you'll see the message: `File converted and saved to output.py`
+</Note>
+
+## Command-Line Flags
+
+### Required Arguments
+
+<ParamField path="--file" type="string" required>
+  Path to the input file containing HTTP messages (e.g., Burp Suite XML export)
+</ParamField>
+
+<ParamField path="--output" type="string" required>
+  Path where the generated Python file will be saved
+</ParamField>
+
+### Optional Flags
+
+<ParamField path="--use_oop" type="boolean" default="false">
+  Generate object-oriented code with a class structure instead of standalone functions
+</ParamField>
+
+<ParamField path="--force_dicts" type="boolean" default="false">
+  Force arguments and headers to be dictionaries. Useful for form-data and URL-encoded parameters
+</ParamField>
+
+## Examples
+
+### Basic Conversion
+
+Convert a Burp Suite export to simple function-based code:
+
+```bash
+python -m httpconverter.cli --file ./examples/example.xml --output example.py
+```
+
+<CodeGroup>
+```bash Terminal Output
+$ python -m httpconverter.cli --file ./examples/example.xml --output example.py
+File converted and saved to example.py
+```
+
+```python Generated Code (example.py)
+import requests
+
+def request_0():
+    url = 'https://example.com/api/login'
+    headers = {
+        'Host': 'example.com',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer example_token'
+    }
+    json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
+    
+    response = requests.post(url, headers=headers, json=json)
+    return response
+
+def request_1():
+    url = 'https://example.com/api/profile'
+    headers = {
+        'Host': 'example.com',
+        'Authorization': 'Bearer abc123'
+    }
+    
+    response = requests.get(url, headers=headers)
+    return response
+```
+</CodeGroup>
+
+### Object-Oriented Code Generation
+
+Generate OOP-styled code with the `--use_oop` flag:
+
+```bash
+python -m httpconverter.cli --file ./examples/example.xml --output api_client.py --use_oop
+```
+
+<CodeGroup>
+```bash Terminal Output
+$ python -m httpconverter.cli --file ./examples/example.xml --output api_client.py --use_oop
+File converted and saved to api_client.py
+```
+
+```python Generated Code (api_client.py)
+import requests
+
+class ClassNameHere:
+    def __init__(self):
+        self.session = requests.Session()  # Place here your own class variables
+    
+    def request_0(self):
+        url = 'https://example.com/api/login'
+        headers = {
+            'Host': 'example.com',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer example_token'
+        }
+        json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
+        
+        response = self.session.post(url, headers=headers, json=json)
+        return response
+    
+    def request_1(self):
+        url = 'https://example.com/api/profile'
+        headers = {
+            'Host': 'example.com',
+            'Authorization': 'Bearer abc123'
+        }
+        
+        response = self.session.get(url, headers=headers)
+        return response
+```
+</CodeGroup>
+
+### Force Dictionary Arguments
+
+Use `--force_dicts` to convert URL-encoded data into Python dictionaries:
+
+```bash
+python -m httpconverter.cli --file form_request.xml --output form_code.py --force_dicts
+```
+
+<Warning>
+The `--force_dicts` flag is particularly useful when working with form-data or URL-encoded requests, as it converts the raw string data into structured Python dictionaries.
+</Warning>
+
+### Combined Flags
+
+You can combine multiple flags for maximum customization:
+
+```bash
+python -m httpconverter.cli --file ./examples/example.xml --output api.py --use_oop --force_dicts
+```
+
+## Installation for Global Access
+
+For convenience, install HTTPToRequests globally to use it anywhere:
+
+```bash
+python setup.py install
+```
+
+After installation, use the `httpconverter` command directly:
+
+```bash
+httpconverter --file FILE.xml --output OUTPUT.py
+```
+
+## Common Use Cases
+
+<Tabs>
+  <Tab title="Burp Suite Export">
+    ```bash
+    # Export requests from Burp Suite as XML
+    # Then convert to Python code
+    python -m httpconverter.cli --file burp_export.xml --output requests_code.py
+    ```
+  </Tab>
+  
+  <Tab title="API Testing">
+    ```bash
+    # Generate OOP code for API testing framework
+    python -m httpconverter.cli --file api_requests.xml --output test_api.py --use_oop
+    ```
+  </Tab>
+  
+  <Tab title="Form Handling">
+    ```bash
+    # Convert form submissions with dictionary formatting
+    python -m httpconverter.cli --file forms.xml --output form_handlers.py --force_dicts
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+- Learn about [Python module usage](/usage/module) for programmatic conversion
+- Explore [real-world examples](/usage/examples) with different request types
+- Check the [API reference](/api/httpconverter) for advanced usage

@@ -1,0 +1,460 @@
+---
+title: Real-World Examples
+description: Practical examples of converting different HTTP request types to Python requests code
+---
+
+This guide demonstrates real-world scenarios using actual HTTP requests and the generated Python code.
+
+## Example Input File
+
+We'll use the example Burp Suite export from the repository, which contains two HTTP requests:
+
+<Accordion title="View example.xml">
+```xml
+<?xml version="1.0"?>
+<items burpVersion="2024.11.2" exportTime="Mon Dec 30 00:06:23 CST 2024">
+    <item>
+        <time>Sun Dec 29 23:52:11 CST 2024</time>
+        <url><![CDATA[https://example.com/api/login]]></url>
+        <host ip="192.168.0.1">example.com</host>
+        <port>443</port>
+        <protocol>https</protocol>
+        <method><![CDATA[POST]]></method>
+        <path><![CDATA[/api/login]]></path>
+        <request base64="false"><![CDATA[POST /api/login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Authorization: Bearer example_token
+
+{
+    "username": "test_user",
+    "password": "secure_password"
+}
+]]></request>
+        <status>200</status>
+        <comment><![CDATA[Login endpoint]]></comment>
+    </item>
+    <item>
+        <time>Sun Dec 29 23:53:45 CST 2024</time>
+        <url><![CDATA[https://example.com/api/profile]]></url>
+        <host ip="192.168.0.1">example.com</host>
+        <port>443</port>
+        <protocol>https</protocol>
+        <method><![CDATA[GET]]></method>
+        <path><![CDATA[/api/profile]]></path>
+        <request base64="false"><![CDATA[GET /api/profile HTTP/1.1
+Host: example.com
+Authorization: Bearer abc123
+]]></request>
+        <status>200</status>
+        <comment><![CDATA[Profile endpoint]]></comment>
+    </item>
+</items>
+```
+</Accordion>
+
+## JSON POST Request
+
+The first request in `example.xml` demonstrates a POST request with JSON payload.
+
+### HTTP Request
+
+```http
+POST /api/login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Authorization: Bearer example_token
+
+{
+    "username": "test_user",
+    "password": "secure_password"
+}
+```
+
+### Conversion
+
+<CodeGroup>
+```bash CLI
+python -m httpconverter.cli --file ./examples/example.xml --output login.py
+```
+
+```python Module
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter("./examples/example.xml")
+converter.extract(filename="login.py")
+```
+</CodeGroup>
+
+### Generated Code
+
+<Tabs>
+  <Tab title="Function Style">
+    ```python login.py
+    import requests
+
+    def request_0():
+        url = 'https://example.com/api/login'
+        headers = {
+            'Host': 'example.com',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer example_token'
+        }
+        json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
+        
+        response = requests.post(url, headers=headers, json=json)
+        return response
+    ```
+  </Tab>
+  
+  <Tab title="OOP Style">
+    ```python login.py (with --use_oop)
+    import requests
+
+    class ClassNameHere:
+        def __init__(self):
+            self.session = requests.Session()
+        
+        def request_0(self):
+            url = 'https://example.com/api/login'
+            headers = {
+                'Host': 'example.com',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer example_token'
+            }
+            json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
+            
+            response = self.session.post(url, headers=headers, json=json)
+            return response
+    ```
+  </Tab>
+  
+  <Tab title="Usage">
+    ```python Using the Generated Code
+    import requests
+    from login import request_0
+    
+    # Call the generated function
+    response = request_0()
+    
+    # Process response
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Login successful: {data}")
+    else:
+        print(f"Login failed: {response.status_code}")
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+JSON payloads are automatically detected when `Content-Type: application/json` is present in the headers.
+</Note>
+
+## GET Request with Authentication
+
+The second request demonstrates a simple GET request with authorization.
+
+### HTTP Request
+
+```http
+GET /api/profile HTTP/1.1
+Host: example.com
+Authorization: Bearer abc123
+```
+
+### Generated Code
+
+```python
+import requests
+
+def request_1():
+    url = 'https://example.com/api/profile'
+    headers = {
+        'Host': 'example.com',
+        'Authorization': 'Bearer abc123'
+    }
+    
+    response = requests.get(url, headers=headers)
+    return response
+```
+
+### Usage Example
+
+```python
+from login import request_0
+from profile import request_1
+
+# Login first
+login_response = request_0()
+token = login_response.json().get('token')
+
+# Get profile
+profile_response = request_1()
+profile_data = profile_response.json()
+print(f"User profile: {profile_data}")
+```
+
+## URL-Encoded Form Data
+
+Example of handling `application/x-www-form-urlencoded` data.
+
+### HTTP Request
+
+```http
+POST /api/submit HTTP/1.1
+Host: example.com
+Content-Type: application/x-www-form-urlencoded
+
+username=john_doe&email=john@example.com&age=30
+```
+
+### Generated Code
+
+<Tabs>
+  <Tab title="Default (String)">
+    ```python Without --force_dicts
+    import requests
+
+    def request_0():
+        url = 'https://example.com/api/submit'
+        headers = {
+            'Host': 'example.com',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        data = 'username=john_doe&email=john@example.com&age=30'
+        
+        response = requests.post(url, headers=headers, data=data)
+        return response
+    ```
+  </Tab>
+  
+  <Tab title="Dictionary (--force_dicts)">
+    ```python With --force_dicts
+    import requests
+
+    def request_0():
+        url = 'https://example.com/api/submit'
+        headers = {
+            'Host': 'example.com',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        data = {'username':'john_doe', 'email':'john@example.com', 'age':'30'}
+        
+        response = requests.post(url, headers=headers, data=data)
+        return response
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+Use the `--force_dicts` flag when you need to modify individual form parameters in the generated code.
+</Warning>
+
+## Multipart Form Data
+
+Example of handling file uploads and multipart form data.
+
+### HTTP Request
+
+```http
+POST /api/upload HTTP/1.1
+Host: example.com
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"
+
+document.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Important document
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+```
+
+### Generated Code
+
+```python
+import requests
+
+def request_0():
+    url = 'https://example.com/api/upload'
+    headers = {
+        'Host': 'example.com',
+        'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+    }
+    files = {
+        'file': 'document.pdf',
+        'description': 'Important document'
+    }
+    
+    response = requests.post(url, headers=headers, files=files)
+    return response
+```
+
+<Note>
+Multipart form data is automatically detected and converted to the `files` parameter.
+</Note>
+
+## Complete API Workflow
+
+Combining multiple requests into a workflow.
+
+### Convert All Requests
+
+```bash
+python -m httpconverter.cli --file ./examples/example.xml --output api.py --use_oop
+```
+
+### Generated API Client
+
+```python api.py
+import requests
+
+class ClassNameHere:
+    def __init__(self):
+        self.session = requests.Session()
+    
+    def request_0(self):
+        """Login endpoint"""
+        url = 'https://example.com/api/login'
+        headers = {
+            'Host': 'example.com',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer example_token'
+        }
+        json = '{\n    "username": "test_user",\n    "password": "secure_password"\n}'
+        response = self.session.post(url, headers=headers, json=json)
+        return response
+    
+    def request_1(self):
+        """Profile endpoint"""
+        url = 'https://example.com/api/profile'
+        headers = {
+            'Host': 'example.com',
+            'Authorization': 'Bearer abc123'
+        }
+        response = self.session.get(url, headers=headers)
+        return response
+```
+
+### Using the API Client
+
+```python
+from api import ClassNameHere
+
+# Rename the class for clarity
+class APIClient(ClassNameHere):
+    def login(self, username, password):
+        """Custom login method"""
+        return self.request_0()
+    
+    def get_profile(self):
+        """Get user profile"""
+        return self.request_1()
+
+# Use the client
+client = APIClient()
+
+# Login
+login_response = client.login("test_user", "secure_password")
+if login_response.status_code == 200:
+    token = login_response.json().get('token')
+    print(f"Logged in with token: {token}")
+    
+    # Get profile
+    profile_response = client.get_profile()
+    user_data = profile_response.json()
+    print(f"User: {user_data['username']} ({user_data['email']})")
+```
+
+## Batch Processing
+
+Convert multiple Burp Suite exports:
+
+```python
+import os
+from httpconverter import HTTPConverter
+
+def convert_all_exports():
+    """Convert all XML files in the exports directory"""
+    exports_dir = "./burp_exports"
+    output_dir = "./generated_api"
+    
+    for filename in os.listdir(exports_dir):
+        if filename.endswith(".xml"):
+            input_path = os.path.join(exports_dir, filename)
+            output_filename = filename.replace(".xml", ".py")
+            output_path = os.path.join(output_dir, output_filename)
+            
+            converter = HTTPConverter(input_path)
+            converter.extract(
+                use_oop=True,
+                filename=output_path,
+                force_dicts=True
+            )
+            
+            print(f"Converted: {filename} -> {output_filename}")
+
+if __name__ == "__main__":
+    convert_all_exports()
+```
+
+## Testing Generated Code
+
+Validate the generated code works correctly:
+
+```python
+import pytest
+from api import ClassNameHere
+
+class TestAPIClient:
+    def setup_method(self):
+        self.client = ClassNameHere()
+    
+    def test_login(self):
+        response = self.client.request_0()
+        assert response.status_code == 200
+        assert 'token' in response.json()
+    
+    def test_profile(self):
+        response = self.client.request_1()
+        assert response.status_code == 200
+        data = response.json()
+        assert 'username' in data
+        assert 'email' in data
+```
+
+## Tips and Best Practices
+
+<AccordionGroup>
+  <Accordion title="Cookie Handling">
+    Cookies from the HTTP request are automatically removed from headers. Use `requests.Session()` or the `cookies` parameter to manage cookies:
+    
+    ```python
+    session = requests.Session()
+    session.cookies.set('session_id', 'abc123')
+    ```
+  </Accordion>
+  
+  <Accordion title="Customizing Generated Code">
+    After generation, you can customize the code:
+    - Rename functions to meaningful names
+    - Add error handling
+    - Extract common headers to class variables
+    - Parameterize hardcoded values
+  </Accordion>
+  
+  <Accordion title="OOP vs Function Style">
+    - **Use OOP** when building API clients or test frameworks
+    - **Use functions** for quick scripts or one-off conversions
+    - OOP style uses `requests.Session()` for connection pooling
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Review the [CLI documentation](/usage/cli) for command-line options
+- Learn about [module usage](/usage/module) for programmatic access
+- Check the [API reference](/api/httpconverter) for detailed class documentation

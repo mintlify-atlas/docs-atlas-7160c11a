@@ -1,0 +1,132 @@
+---
+title: Installation
+description: Install HTTPToRequests via pip or from source with all dependencies
+---
+
+## Requirements
+
+HTTPToRequests requires Python 3.9 or higher.
+
+## Installation Methods
+
+<Steps>
+  <Step title="Install via pip (Recommended)">
+    Install HTTPToRequests and all dependencies with a single command:
+    
+    ```bash
+    pip install httpconverter
+    ```
+    
+    This installs the package and makes the `httpconverter` command available globally.
+  </Step>
+  
+  <Step title="Install from Source">
+    Clone the repository and install using setup.py:
+    
+    ```bash
+    git clone https://github.com/freshSauce/HTTPToRequests.git
+    cd HTTPToRequests
+    python setup.py install
+    ```
+    
+    After installation, the `httpconverter` command will be available system-wide.
+  </Step>
+  
+  <Step title="Verify Installation">
+    Verify that HTTPToRequests is installed correctly:
+    
+    ```bash
+    httpconverter --help
+    ```
+    
+    You should see the help message with available options.
+    
+    Alternatively, verify the Python module is importable:
+    
+    ```python
+    from httpconverter import HTTPConverter
+    print("HTTPToRequests installed successfully!")
+    ```
+  </Step>
+</Steps>
+
+## Dependencies
+
+HTTPToRequests automatically installs the following dependencies:
+
+<CodeGroup>
+```txt requirements.txt
+beautifulsoup4  # XML parsing for Burp Suite exports
+autopep8        # PEP8 code formatting
+lxml            # XML processing backend
+```
+</CodeGroup>
+
+<Note>
+All dependencies are installed automatically when you install HTTPToRequests via pip or setup.py.
+</Note>
+
+## Development Installation
+
+For contributors or those who want to modify the source code:
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/freshSauce/HTTPToRequests.git
+    cd HTTPToRequests
+    ```
+  </Step>
+  
+  <Step title="Install in Development Mode">
+    ```bash
+    pip install -e .
+    ```
+    
+    This creates a symlink to your local repository, allowing you to modify the code without reinstalling.
+  </Step>
+  
+  <Step title="Run Tests">
+    Verify everything works by running the test suite:
+    
+    ```bash
+    pytest ./tests/
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+If you're installing from source, make sure you have Python 3.9+ installed. Older versions are not supported.
+</Warning>
+
+## Troubleshooting
+
+### Permission Errors
+
+If you encounter permission errors during installation, try using:
+
+```bash
+pip install --user httpconverter
+```
+
+Or use a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install httpconverter
+```
+
+### Import Errors
+
+If you get `ModuleNotFoundError`, ensure your Python path includes the installation directory:
+
+```bash
+python -c "import sys; print('\n'.join(sys.path))"
+```
+
+## Next Steps
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Learn how to convert your first HTTP message to Python code
+</Card>

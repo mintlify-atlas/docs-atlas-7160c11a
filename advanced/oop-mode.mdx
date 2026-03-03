@@ -1,0 +1,136 @@
+---
+title: "OOP Mode"
+description: "Learn how to generate class-based Python code instead of standalone functions"
+---
+
+HTTPToRequests can generate code in two different styles: **functional mode** (default) and **OOP mode**. This page explains the differences and when to use each approach.
+
+## What is OOP Mode?
+
+OOP mode generates class-based Python code where all request functions are methods of a class with a shared `requests.Session()` object. Functional mode generates standalone functions that accept a session parameter.
+
+## Code Comparison
+
+<Tabs>
+  <Tab title="Functional Mode (Default)">
+    ```python
+    import requests
+
+    def post_api_login(session):
+        headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+        json = {"username": "test_user", "password": "secure_password"}
+
+        response = session.post('https://example.com/api/login', headers=headers, json=json)
+
+    def get_api_profile(session):
+        headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
+
+        response = session.get('https://example.com/api/profile', headers=headers)
+    ```
+
+    Functions accept `session` as a parameter, giving you flexibility to pass different session objects.
+  </Tab>
+  <Tab title="OOP Mode">
+    ```python
+    import requests
+
+    class ClassNameHere:
+        def __init__(self):
+            self.session = requests.Session()  # Place here your own class variables
+
+        def post_api_login(self):
+            headers = {'Host': 'example.com', 'Content-Type': 'application/json'}
+            json = {"username": "test_user", "password": "secure_password"}
+
+            response = self.session.post('https://example.com/api/login', headers=headers, json=json)
+
+        def get_api_profile(self):
+            headers = {'Host': 'example.com', 'Authorization': 'Bearer abc123'}
+
+            response = self.session.get('https://example.com/api/profile', headers=headers)
+    ```
+
+    All methods share `self.session`, maintaining cookies and connection pooling across requests.
+  </Tab>
+</Tabs>
+
+## Enabling OOP Mode
+
+Set the `use_oop` parameter to `True` when calling the `extract()` method:
+
+```python
+from httpconverter import HTTPConverter
+
+converter = HTTPConverter('burp_export.xml')
+converter.extract(use_oop=True, filename='api_client.py')
+```
+
+## Implementation Details
+
+The OOP mode implementation adjusts the template structure in two key ways (from `template.py:14-38`):
+
+1. **Function signature**: Changes from `def function_name(session):` to `def function_name(self):`
+2. **Request calls**: Changes from `session.method()` to `self.session.method()`
+3. **Indentation**: All methods are indented to be part of the class definition
+
+```python
+if self.use_oop:
+    request_body = "\tresponse = self.session.{method}('{url}', headers=headers, " \
+                   + ("json=json, " if self.json else "") \
+                   + ("data=data, " if self.data else "") \
+                   + ("params=params, " if self.params else "") \
+                   + ("files=form)" if self.form else ")")
+else:
+    request_body = "\tresponse = session.{method}('{url}', headers=headers, " \
+                   + ("json=json, " if self.json else "") \
+                   + ("data=data, " if self.data else "") \
+                   + ("params=params, " if self.params else "") \
+                   + ("files=form)" if self.form else ")")
+```
+
+## When to Use Each Mode
+
+<CardGroup cols={2}>
+  <Card title="Use Functional Mode When" icon="function">
+    - You need flexibility with different session configurations
+    - Building microservices or serverless functions
+    - Testing with mocked sessions
+    - Sharing functions across projects
+  </Card>
+  <Card title="Use OOP Mode When" icon="object-group">
+    - Building an API client library
+    - Maintaining state across requests (cookies, auth tokens)
+    - Organizing related endpoints together
+    - Leveraging connection pooling and session persistence
+  </Card>
+</CardGroup>
+
+## Example Usage
+
+<Tabs>
+  <Tab title="Functional Mode">
+    ```python
+    import requests
+    from generated_code import post_api_login, get_api_profile
+
+    # Create session when needed
+    session = requests.Session()
+    
+    # Pass session to each function
+    post_api_login(session)
+    profile = get_api_profile(session)
+    ```
+  </Tab>
+  <Tab title="OOP Mode">
+    ```python
+    from generated_code import ClassNameHere
+
+    # Instantiate the class
+    api_client = ClassNameHere()
+    
+    # Session is shared across all methods
+    api_client.post_api_login()
+    api_client.get_api_profile()
+    ```
+  </Tab>
+</Tabs>

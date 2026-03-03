@@ -1,0 +1,122 @@
+---
+title: Contributing to HTTPToRequests
+description: Learn how to contribute features and bug fixes to the HTTPToRequests project
+---
+
+We welcome contributions to HTTPToRequests! Whether you're fixing bugs, adding features, or improving documentation, your help is greatly appreciated.
+
+## Project Structure
+
+The HTTPToRequests project is organized as follows:
+
+```
+httpconverter/
+├── httpconverter/          # Main package directory
+│   ├── __init__.py        # Package initialization
+│   ├── main.py            # Core HTTPConverter class
+│   ├── cli.py             # Command-line interface
+│   └── template.py        # Code generation templates
+├── tests/                 # Test suite
+│   ├── test_validate_file.py
+│   ├── test_read_file.py
+│   ├── test_extractor.py
+│   ├── test_extract.py
+│   └── test_errors.py
+├── setup.py               # Package installation configuration
+└── README.md              # Project documentation
+```
+
+### Key Components
+
+- **httpconverter/main.py**: Contains the `HTTPConverter` class with methods for parsing HTTP messages and converting them to Python requests code
+- **httpconverter/cli.py**: Provides the command-line interface entry point
+- **httpconverter/template.py**: Manages code generation templates for OOP and functional styles
+- **tests/**: Comprehensive test suite using pytest
+
+## How to Submit Contributions
+
+<Steps>
+  <Step title="Fork the Project">
+    Create your own fork of the HTTPToRequests repository on GitHub. This gives you a personal copy to work with.
+  </Step>
+
+  <Step title="Create a Feature Branch">
+    Create a new branch for your feature or bug fix:
+    
+    ```bash
+    git checkout -b feature/AmazingFeature
+    ```
+    
+    Use descriptive branch names like `feature/add-cookie-support` or `fix/header-parsing-bug`.
+  </Step>
+
+  <Step title="Make Your Changes">
+    Implement your feature or bug fix. Make sure to:
+    
+    - Follow the existing code style
+    - Add tests for new functionality
+    - Update documentation if needed
+    - Ensure all tests pass by running `pytest ./tests/`
+  </Step>
+
+  <Step title="Commit Your Changes">
+    Commit your changes with a clear, descriptive message:
+    
+    ```bash
+    git commit -m 'Add some AmazingFeature'
+    ```
+    
+    Write meaningful commit messages that explain what changed and why.
+  </Step>
+
+  <Step title="Push to Your Branch">
+    Push your changes to your fork:
+    
+    ```bash
+    git push origin feature/AmazingFeature
+    ```
+  </Step>
+
+  <Step title="Open a Pull Request">
+    Go to the original HTTPToRequests repository and open a Pull Request from your feature branch. Provide a clear description of:
+    
+    - What changes you made
+    - Why you made them
+    - Any related issues
+  </Step>
+</Steps>
+
+## Development Guidelines
+
+### Code Quality
+
+- Write clean, readable code that follows Python best practices
+- Use type hints where appropriate
+- Keep functions focused and single-purpose
+- Add docstrings to new classes and methods
+
+### Testing
+
+- Add tests for any new features or bug fixes
+- Ensure all existing tests continue to pass
+- Aim for good test coverage of your code
+- See the [Testing](/testing) guide for more details
+
+### Dependencies
+
+The project uses minimal dependencies defined in `setup.py`:
+
+- `beautifulsoup4` - HTML/XML parsing
+- `autopep8` - Code formatting
+- `lxml` - XML processing
+
+Only add new dependencies if absolutely necessary.
+
+## Getting Help
+
+If you have questions or ideas, you can:
+
+- Open an issue on GitHub
+- Reach out on [Telegram](https://t.me/freshSauce)
+
+Thank you for contributing to HTTPToRequests!
